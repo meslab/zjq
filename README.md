@@ -1,0 +1,2 @@
+# zjq
+Zig lang study
