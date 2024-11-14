@@ -1,7 +1,7 @@
 test:
-	zig build test
+	@zig build test
 
 run:
-	zig build run
+	@zig build run
 
 .PHONY: test run
