@@ -2,14 +2,14 @@ const std = @import("std");
 const zjq = @import("root.zig");
 
 pub fn main() !void {
-    
-    std.debug.print("3 + 8 = {} # this is stderr\n", .{zjq.add.add(3, 8)});
+    const stdin = std.io.getStdIn().reader();
+    var buffer: [1024]u8 = undefined;
 
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    const line = try stdin.readUntilDelimiterOrEof(&buffer, '\n');
 
-    try stdout.print("3 x 7 = {} # this is stdout\n", .{zjq.multi.multiply(3, 7)});
-
-    try bw.flush(); // don't forget to flush!
+    if (line != null) {
+        std.debug.print("Received: {?s}\n", .{line});
+    } else {
+        std.debug.print("End of input\n", .{});
+    }
 }
