@@ -19,6 +19,7 @@ pub fn main() !void {
 
         const json = T.init(parsed_line.value);
         try json.unpack();
+        //std.debug.print("Unpacked: {?s}\n", .{json_string});
     } else {
         std.debug.print("End of input\n", .{});
     }
