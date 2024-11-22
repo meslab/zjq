@@ -1,6 +1,6 @@
 const std = @import("std");
 const zjq = @import("root.zig");
-const T = zjq.str.T;
+const parse_json = zjq.str.parse_json;
 
 pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
@@ -15,14 +15,8 @@ pub fn main() !void {
     if (line) |value| {
         std.debug.print("Received: {?s}\n", .{value});
 
-        // var val: T = undefined;
-
-        var parsed_line = try std.json.parseFromSlice(std.json.Value, allocator, value, .{});
-        defer parsed_line.deinit();
-
-        const json = T.init(parsed_line.value);
-        try json.unpack();
-        //std.debug.print("Unpacked: {?s}\n", .{json_string});
+        const json_string = parse_json(value, allocator);
+        std.debug.print("Unpacked: {!s}\n", .{json_string});
     } else {
         std.debug.print("End of input\n", .{});
     }

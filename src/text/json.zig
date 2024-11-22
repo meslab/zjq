@@ -1,14 +1,14 @@
 const std = @import("std");
 const testing = std.testing;
 
-pub const T = struct {
+const T = struct {
     t: ?std.json.Value,
 
     pub fn init(self: std.json.Value) T {
         return T{ .t = self };
     }
 
-    pub fn unpack(self: T) !void {
+    fn unpack(self: T) !void {
         var gpa = std.heap.GeneralPurposeAllocator(.{}){};
         const allocator = gpa.allocator();
         defer _ = gpa.deinit();
@@ -36,7 +36,7 @@ pub const T = struct {
         }
     }
 
-    pub fn get(self: T, query: []const u8) T {
+    fn get(self: T, query: []const u8) T {
         const delimiter = ".";
         var split_query = std.mem.split(u8, query, delimiter);
 
@@ -52,7 +52,35 @@ pub const T = struct {
 
         return T.init(current);
     }
+
+    fn getJson(self: T, query: []const u8) ?std.json.Value {
+        const delimiter = ".";
+        var split_query = std.mem.split(u8, query, delimiter);
+
+        var current = self.t.?;
+        while (split_query.next()) |part| {
+            // std.debug.print("Query: {s}\n", .{part});
+            if (current.object.get(part) == null) {
+                std.debug.print("No such value: {s}\n", .{part});
+                break;
+            }
+            current = current.object.get(part).?;
+        }
+
+        return T.init(current).t.?;
+    }
 };
+
+pub fn parse_json(input: []const u8, allocator: std.mem.Allocator) ![]const u8 {
+    const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, input, .{});
+    defer parsed_json.deinit();
+
+    const result = T.init(parsed_json.value).t.?;
+    const string = try std.json.stringifyAlloc(allocator, result, .{});
+    defer allocator.free(string);
+    
+    return string;
+}
 
 test "json unpack" {
     const allocator = std.testing.allocator;
@@ -107,6 +135,7 @@ test "json unpack 2" {
     const result = json.get("a").get("a");
     const test_string = try std.json.stringifyAlloc(allocator, result, .{});
     defer allocator.free(test_string);
+
     try testing.expectEqualStrings("{\"t\":\"2\"}", test_string);
 }
 
@@ -134,5 +163,6 @@ test "json unpack 3" {
     const result = json.get("a.a");
     const test_string = try std.json.stringifyAlloc(allocator, result, .{});
     defer allocator.free(test_string);
+
     try testing.expectEqualStrings("{\"t\":\"2\"}", test_string);
 }
