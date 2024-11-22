@@ -6,6 +6,10 @@ pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
     var buffer: [1024]u8 = undefined;
 
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
     const line = try stdin.readUntilDelimiterOrEof(&buffer, '\n');
 
     if (line) |value| {
@@ -13,7 +17,6 @@ pub fn main() !void {
 
         // var val: T = undefined;
 
-        const allocator = std.heap.page_allocator;
         var parsed_line = try std.json.parseFromSlice(std.json.Value, allocator, value, .{});
         defer parsed_line.deinit();
 
