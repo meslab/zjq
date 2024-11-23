@@ -59,13 +59,8 @@ const T = struct {
     /// const tInstance = T.init(jsonValue);
     /// try tInstance.unpack(); // Implement unpack logic.
     /// ```
-    fn unpack(self: T) !void {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer _ = gpa.deinit();
-
+    fn unpack(self: T, allocator: std.mem.Allocator) !std.ArrayListAligned(u8, null) {
         var output = std.ArrayList(u8).init(allocator);
-        defer output.deinit();
 
         const writer = output.writer();
         if (self.t) |value| {
@@ -85,6 +80,7 @@ const T = struct {
                 },
             }
         }
+        return output;
     }
 
     /// Retrieves a nested JSON value based on a query and wraps it in a new `T` instance.
@@ -289,7 +285,34 @@ test "json unpack simple" {
         \\ }
     ;
 
-    const parsed_json = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, test_json_string, .{});
+    const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, test_json_string, .{});
+    defer parsed_json.deinit();
+
+    const json_obj = T.init(parsed_json.value);
+
+    const json_string = try json_obj.unpack(allocator);
+    defer json_string.deinit();
+    const expected_json_string =
+        \\{"test":"test","zest":["z","e"],"fest":null,"isit":true,"ns":"1232","in":12343,"a":{"a":"2","b":123,"c":true,"d":null}}
+    ;
+    try testing.expectEqualStrings(expected_json_string, json_string.items);
+}
+
+test "json init simple" {
+    const allocator = std.testing.allocator;
+
+    const test_json_string =
+        \\ {"test": "test",
+        \\ "zest": ["z","e"],
+        \\ "fest": null,
+        \\ "isit": true,
+        \\ "ns": "1232",
+        \\ "in": 12343,
+        \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
+        \\ }
+    ;
+
+    const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, test_json_string, .{});
     defer parsed_json.deinit();
 
     const value = parsed_json.value;
@@ -301,7 +324,10 @@ test "json unpack simple" {
     const test_string = try std.json.stringifyAlloc(allocator, result, .{});
     defer allocator.free(test_string);
 
-    try testing.expectEqualStrings("{\"t\":\"test\"}", test_string);
+    const expected_json_string =
+        \\{"t":"test"}
+    ;
+    try testing.expectEqualStrings(expected_json_string, test_string);
 }
 
 test "json unpack nested" {
@@ -318,7 +344,7 @@ test "json unpack nested" {
         \\ }
     ;
 
-    const parsed_json = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, test_json_string, .{});
+    const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, test_json_string, .{});
     defer parsed_json.deinit();
 
     const value = parsed_json.value;
@@ -349,12 +375,10 @@ test "json unpack nested query" {
         \\}
     ;
 
-    const parsed_json = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, test_json_string, .{});
+    const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, test_json_string, .{});
     defer parsed_json.deinit();
 
-    const value = parsed_json.value;
-
-    const json = T.init(value);
+    const json = T.init(parsed_json.value);
 
     const result = json.get("a.a");
     const test_string = try std.json.stringifyAlloc(allocator, result, .{});
