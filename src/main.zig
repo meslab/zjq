@@ -14,9 +14,24 @@ pub fn main() !void {
 
     if (line) |value| {
         std.debug.print("Received: {?s}\n", .{value});
+        const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, value, .{});
+        defer parsed_json.deinit();
 
-        const json_string = parse_json(value, allocator, .{ .minified = .false });
-        std.debug.print("Unpacked: {!s}\n", .{json_string});
+        const json_obj = zjq.str.T.init(parsed_json.value);
+
+        const json_string = try json_obj.unpack(allocator, .{ .minified = .true });
+        defer json_string.deinit();
+        std.debug.print("Unpacked minified: {!s}\n", .{json_string.items});
+
+        const json_string_expanded = try json_obj.unpack(allocator, .{ .minified = .false });
+        defer json_string_expanded.deinit();
+        std.debug.print("Unpacked expanded: {!s}\n", .{json_string_expanded.items});
+
+        const parsed_string = parse_json(value, allocator, .{ .minified = .true });
+        std.debug.print("Parsed minified: {!s}\n", .{parsed_string});
+
+        const parsed_string_expanded = parse_json(value, allocator, .{ .minified = .false });
+        std.debug.print("Parsed expanded: {!s}\n", .{parsed_string_expanded});
     } else {
         std.debug.print("End of input\n", .{});
     }
