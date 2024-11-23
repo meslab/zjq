@@ -53,7 +53,7 @@ const T = struct {
         return T.init(current);
     }
 
-    fn getJson(self: T, query: []const u8) ?std.json.Value {
+    fn get_json(self: T, query: []const u8) ?std.json.Value {
         const delimiter = ".";
         var split_query = std.mem.split(u8, query, delimiter);
 
@@ -77,9 +77,26 @@ pub fn parse_json(input: []const u8, allocator: std.mem.Allocator) ![]const u8 {
 
     const result = T.init(parsed_json.value).t.?;
     const string = try std.json.stringifyAlloc(allocator, result, .{});
-    defer allocator.free(string);
-    
+
     return string;
+}
+
+test "parse json" {
+    const allocator = std.testing.allocator;
+    const test_json_string =
+        \\ {"test": "test",
+        \\ "zest": ["z","e"],
+        \\ "fest": null,
+        \\ "isit": true,
+        \\ "ns": "1232",
+        \\ "in": 12343,
+        \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
+        \\}
+    ;
+    const json_string = try parse_json(test_json_string, allocator);
+    defer allocator.free(json_string);
+
+    try std.testing.expectEqualStrings("{\"test\":\"test\",\"zest\":[\"z\",\"e\"],\"fest\":null,\"isit\":true,\"ns\":\"1232\",\"in\":12343,\"a\":{\"a\":\"2\",\"b\":123,\"c\":true,\"d\":null}}", json_string);
 }
 
 test "json unpack" {
