@@ -206,6 +206,9 @@ pub fn parse_json(input: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     return string;
 }
 
+//
+// Tests
+//
 test "parse json" {
     const allocator = std.testing.allocator;
     const test_json_string =
@@ -224,7 +227,7 @@ test "parse json" {
     try std.testing.expectEqualStrings("{\"test\":\"test\",\"zest\":[\"z\",\"e\"],\"fest\":null,\"isit\":true,\"ns\":\"1232\",\"in\":12343,\"a\":{\"a\":\"2\",\"b\":123,\"c\":true,\"d\":null}}", json_string);
 }
 
-test "json unpack" {
+test "json unpack simple" {
     const allocator = std.testing.allocator;
 
     const test_json_string =
@@ -253,7 +256,7 @@ test "json unpack" {
     try testing.expectEqualStrings("{\"t\":\"test\"}", test_string);
 }
 
-test "json unpack 2" {
+test "json unpack nested" {
     const allocator = std.testing.allocator;
 
     const test_json_string =
@@ -281,7 +284,7 @@ test "json unpack 2" {
     try testing.expectEqualStrings("{\"t\":\"2\"}", test_string);
 }
 
-test "json unpack 3" {
+test "json unpack nested query" {
     const allocator = std.testing.allocator;
 
     const test_json_string =
