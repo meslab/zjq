@@ -228,12 +228,14 @@ test "parse json minified" {
         \\ "ns": "1232",
         \\ "in": 12343,
         \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
-        \\}
+        \\ }
     ;
     const json_string = try parse_json(test_json_string, allocator, .{});
     defer allocator.free(json_string);
-
-    try std.testing.expectEqualStrings("{\"test\":\"test\",\"zest\":[\"z\",\"e\"],\"fest\":null,\"isit\":true,\"ns\":\"1232\",\"in\":12343,\"a\":{\"a\":\"2\",\"b\":123,\"c\":true,\"d\":null}}", json_string);
+    const expected_json_string =
+        \\{"test":"test","zest":["z","e"],"fest":null,"isit":true,"ns":"1232","in":12343,"a":{"a":"2","b":123,"c":true,"d":null}}
+    ;
+    try std.testing.expectEqualStrings(expected_json_string, json_string);
 }
 
 test "parse json expanded" {
@@ -246,12 +248,9 @@ test "parse json expanded" {
         \\ "ns": "1232",
         \\ "in": 12343,
         \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
-        \\}
+        \\ }
     ;
-    const json_string = try parse_json(test_json_string, allocator, .{ .minified = .false });
-    defer allocator.free(json_string);
-
-    try std.testing.expectEqualStrings(
+    const expected_json_string =
         \\{
         \\  "test": "test",
         \\  "zest": [
@@ -269,7 +268,11 @@ test "parse json expanded" {
         \\    "d": null
         \\  }
         \\}
-    , json_string);
+    ;
+    const json_string = try parse_json(test_json_string, allocator, .{ .minified = .false });
+    defer allocator.free(json_string);
+
+    try std.testing.expectEqualStrings(expected_json_string, json_string);
 }
 
 test "json unpack simple" {
@@ -283,7 +286,7 @@ test "json unpack simple" {
         \\ "ns": "1232",
         \\ "in": 12343,
         \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
-        \\}
+        \\ }
     ;
 
     const parsed_json = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, test_json_string, .{});
@@ -312,7 +315,7 @@ test "json unpack nested" {
         \\ "ns": "1232",
         \\ "in": 12343,
         \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
-        \\}
+        \\ }
     ;
 
     const parsed_json = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, test_json_string, .{});
@@ -326,7 +329,10 @@ test "json unpack nested" {
     const test_string = try std.json.stringifyAlloc(allocator, result, .{});
     defer allocator.free(test_string);
 
-    try testing.expectEqualStrings("{\"t\":\"2\"}", test_string);
+    const expected_json_string =
+        \\{"t":"2"}
+    ;
+    try testing.expectEqualStrings(expected_json_string, test_string);
 }
 
 test "json unpack nested query" {
@@ -354,5 +360,8 @@ test "json unpack nested query" {
     const test_string = try std.json.stringifyAlloc(allocator, result, .{});
     defer allocator.free(test_string);
 
-    try testing.expectEqualStrings("{\"t\":\"2\"}", test_string);
+    const expected_json_string =
+        \\{"t":"2"}
+    ;
+    try testing.expectEqualStrings(expected_json_string, test_string);
 }
