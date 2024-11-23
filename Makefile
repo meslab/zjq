@@ -4,4 +4,7 @@ test:
 run:
 	@zig build run
 
-.PHONY: test run
+clean:
+	@rm -rf .zig-cache zig-out
+
+.PHONY: clean test run
