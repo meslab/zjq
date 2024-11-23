@@ -15,7 +15,7 @@ pub fn main() !void {
     if (line) |value| {
         std.debug.print("Received: {?s}\n", .{value});
 
-        const json_string = parse_json(value, allocator);
+        const json_string = parse_json(value, allocator, .{ .minified = .false });
         std.debug.print("Unpacked: {!s}\n", .{json_string});
     } else {
         std.debug.print("End of input\n", .{});
