@@ -196,20 +196,29 @@ const T = struct {
 ///
 /// # Notes
 /// - Ensure the input JSON is properly formatted and valid.
-pub fn parse_json(input: []const u8, allocator: std.mem.Allocator) ![]const u8 {
+pub fn parse_json(input: []const u8, allocator: std.mem.Allocator, options: ParseOptions) ![]const u8 {
     const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, input, .{});
     defer parsed_json.deinit();
 
+    var stringify_options: std.json.StringifyOptions = undefined;
+    if (options.minified == .true) {
+        stringify_options = .{};
+    } else {
+        stringify_options = .{ .whitespace = .indent_2 };
+    }
+
     const result = T.init(parsed_json.value).t.?;
-    const string = try std.json.stringifyAlloc(allocator, result, .{});
+    const string = try std.json.stringifyAlloc(allocator, result, stringify_options);
 
     return string;
 }
 
+const ParseOptions = struct { minified: enum { true, false } = .true };
+
 //
 // Tests
 //
-test "parse json" {
+test "parse json minified" {
     const allocator = std.testing.allocator;
     const test_json_string =
         \\ {"test": "test",
@@ -221,10 +230,46 @@ test "parse json" {
         \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
         \\}
     ;
-    const json_string = try parse_json(test_json_string, allocator);
+    const json_string = try parse_json(test_json_string, allocator, .{});
     defer allocator.free(json_string);
 
     try std.testing.expectEqualStrings("{\"test\":\"test\",\"zest\":[\"z\",\"e\"],\"fest\":null,\"isit\":true,\"ns\":\"1232\",\"in\":12343,\"a\":{\"a\":\"2\",\"b\":123,\"c\":true,\"d\":null}}", json_string);
+}
+
+test "parse json expanded" {
+    const allocator = std.testing.allocator;
+    const test_json_string =
+        \\ {"test": "test",
+        \\ "zest": ["z","e"],
+        \\ "fest": null,
+        \\ "isit": true,
+        \\ "ns": "1232",
+        \\ "in": 12343,
+        \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
+        \\}
+    ;
+    const json_string = try parse_json(test_json_string, allocator, .{ .minified = .false });
+    defer allocator.free(json_string);
+
+    try std.testing.expectEqualStrings(
+        \\{
+        \\  "test": "test",
+        \\  "zest": [
+        \\    "z",
+        \\    "e"
+        \\  ],
+        \\  "fest": null,
+        \\  "isit": true,
+        \\  "ns": "1232",
+        \\  "in": 12343,
+        \\  "a": {
+        \\    "a": "2",
+        \\    "b": 123,
+        \\    "c": true,
+        \\    "d": null
+        \\  }
+        \\}
+    , json_string);
 }
 
 test "json unpack simple" {
