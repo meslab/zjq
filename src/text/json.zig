@@ -144,8 +144,8 @@ pub const T = struct {
     }
 
     fn get_json(self: T, query: []const u8) ?std.json.Value {
-        const delimiter = ".";
-        var split_query = std.mem.split(u8, query, delimiter);
+        const delimiter = '.';
+        var split_query = std.mem.splitScalar(u8, query, delimiter);
 
         var current = self.t.?;
         while (split_query.next()) |part| {
