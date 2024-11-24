@@ -10,4 +10,4 @@ clean:
 install:
 	@zig build --release=safe --prefix-exe-dir ~/.local/bin
 
-.PHONY: clean test run
+.PHONY: clean test run install
