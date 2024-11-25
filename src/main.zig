@@ -1,6 +1,6 @@
 const std = @import("std");
 const zjq = @import("root.zig");
-const parse_json = zjq.str.parse_json;
+const parse_json = zjq.json.parse_json;
 
 pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
@@ -17,7 +17,7 @@ pub fn main() !void {
         const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, value, .{});
         defer parsed_json.deinit();
 
-        const json_obj = zjq.str.T.init(parsed_json.value);
+        const json_obj = zjq.json.T.init(parsed_json.value);
 
         const json_string = try json_obj.unpack(allocator, .{ .minified = .true });
         defer json_string.deinit();
