@@ -143,7 +143,7 @@ pub const T = struct {
         return T.init(current);
     }
 
-    fn get_json(self: T, query: []const u8) ?std.json.Value {
+    fn getJson(self: T, query: []const u8) ?std.json.Value {
         const delimiter = '.';
         var split_query = std.mem.splitScalar(u8, query, delimiter);
 
@@ -192,13 +192,13 @@ pub const T = struct {
 ///     \"key\": \"value\"
 /// }";
 ///
-/// const output = try parse_json(jsonInput, &myAllocator.allocator);
+/// const output = try parseJson(jsonInput, &myAllocator.allocator);
 /// std.debug.print("Output: {s}\n", .{output});
 /// ```
 ///
 /// # Notes
 /// - Ensure the input JSON is properly formatted and valid.
-pub fn parse_json(input: []const u8, allocator: std.mem.Allocator, options: ParseOptions) ![]const u8 {
+pub fn parseJson(input: []const u8, allocator: std.mem.Allocator, options: ParseOptions) ![]const u8 {
     const parsed_json = try std.json.parseFromSlice(std.json.Value, allocator, input, .{});
     defer parsed_json.deinit();
 
@@ -232,7 +232,7 @@ test "parse json minified" {
         \\ "a": {"a":"2", "b": 123, "c": true, "d": null}
         \\ }
     ;
-    const json_string = try parse_json(test_json_string, allocator, .{});
+    const json_string = try parseJson(test_json_string, allocator, .{});
     defer allocator.free(json_string);
     const expected_json_string =
         \\{"test":"test","zest":["z","e"],"fest":null,"isit":true,"ns":"1232","in":12343,"a":{"a":"2","b":123,"c":true,"d":null}}
@@ -271,7 +271,7 @@ test "parse json expanded" {
         \\  }
         \\}
     ;
-    const json_string = try parse_json(test_json_string, allocator, .{ .minified = .false });
+    const json_string = try parseJson(test_json_string, allocator, .{ .minified = .false });
     defer allocator.free(json_string);
 
     try std.testing.expectEqualStrings(expected_json_string, json_string);
