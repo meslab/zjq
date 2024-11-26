@@ -1,6 +1,6 @@
 const std = @import("std");
 const zjq = @import("root.zig");
-const parse_json = zjq.json.parse_json;
+const parseJson = zjq.json.parseJson;
 
 pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
@@ -27,10 +27,10 @@ pub fn main() !void {
         defer json_string_expanded.deinit();
         std.debug.print("Unpacked expanded: {!s}\n", .{json_string_expanded.items});
 
-        const parsed_string = parse_json(value, allocator, .{ .minified = .true });
+        const parsed_string = parseJson(value, allocator, .{ .minified = .true });
         std.debug.print("Parsed minified: {!s}\n", .{parsed_string});
 
-        const parsed_string_expanded = parse_json(value, allocator, .{ .minified = .false });
+        const parsed_string_expanded = parseJson(value, allocator, .{ .minified = .false });
         std.debug.print("Parsed expanded: {!s}\n", .{parsed_string_expanded});
     } else {
         std.debug.print("End of input\n", .{});
